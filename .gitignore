@@ -1,0 +1,16 @@
+/node_modules
+
+# Python virtual envs
+.venv/
+venv/
+
+# Secrets and local environment files
+.env
+.env.*
+backend/.env
+frontend/.env
+
+# Keep examples in repo
+!.env.example
+!backend/.env.example
+!frontend/.env.example
