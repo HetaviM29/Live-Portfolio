@@ -14,3 +14,5 @@ frontend/.env
 !.env.example
 !backend/.env.example
 !frontend/.env.example
+
+backend/data
