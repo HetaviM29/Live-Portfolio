@@ -15,4 +15,6 @@ frontend/.env
 !backend/.env.example
 !frontend/.env.example
 
-backend/data
+# Portfolio data folders
+/backend/data/
+/data/
