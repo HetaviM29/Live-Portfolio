@@ -4,6 +4,10 @@
 .venv/
 venv/
 
+# Python cache
+__pycache__/
+*.pyc
+
 # Secrets and local environment files
 .env
 .env.*
@@ -18,3 +22,10 @@ frontend/.env
 # Portfolio data folders
 /backend/data/
 /data/
+
+# React build
+frontend/build/
+
+# OS files
+.DS_Store
+Thumbs.db
