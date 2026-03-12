@@ -31,4 +31,4 @@ async def health_check() -> dict[str, str]:
 	return {"status": "ok"}
 
 
-app.include_router(chat_router)
+# app.include_router(chat_router)
