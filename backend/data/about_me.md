@@ -6,6 +6,8 @@ Name: Hetavi Modi
 Degree: B.E in Computer Engineering  
 Field: Computer Science 
 Location: Pune, Maharashtra, India
+Email: hetavimodi29@gmail.com
+Mobile: 9529623267
 CGPA: 9.48
 
 ---

@@ -407,7 +407,7 @@ def _docs_by_section() -> dict[str, list[PortfolioDocument]]:
 
 def _detect_intent(question: str) -> str | None:
     q = question.lower()
-    if any(token in q for token in ["contact", "reach", "email", "phone", "linkedin", "connect"]):
+    if any(token in q for token in ["contact", "reach", "email", "phone", "mobile", "number", "linkedin", "connect"]):
         return "contact"
     if any(token in q for token in ["hire", "why should we hire", "fit for", "right candidate"]):
         return "hire"
@@ -719,12 +719,17 @@ def _build_contact_answer(docs: list[PortfolioDocument]) -> tuple[str, list[Port
     about_docs = [doc for doc in docs if doc.section == "about me"]
     basic = next((doc for doc in about_docs if "basic information" in doc.title.lower()), None)
     location = _extract_field(basic.content, "Location") if basic else "Pune, Maharashtra, India"
+    email = _extract_field(basic.content, "Email") if basic else ""
+    mobile = _extract_field(basic.content, "Mobile") if basic else ""
+    if not mobile:
+        mobile = _extract_field(basic.content, "Phone") if basic else ""
 
     lines = [
-        "I do not have direct public contact fields in the current knowledge base, but here is the best available info:",
+        "Here is the best way to contact her:",
         "",
+        f"- Email: {email or 'hetavimodi29@gmail.com'}",
+        f"- Mobile: {mobile or '9529623267'}",
         f"- Location: {location}",
-        "- You can connect with her through her professional portfolio mode and public profiles.",
     ]
     used = [basic] if basic else []
     return _normalize_pronouns("\n".join(lines)), used
