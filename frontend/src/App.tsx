@@ -27,7 +27,7 @@ const navItems = [
   { label: 'Contact', icon: '💻', query: 'How can I contact Hetavi?' },
 ]
 
-const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? 'https://ai-portfolio-backend.onrender.com/query'
 
 const createMessageId = () => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -96,7 +96,7 @@ function App() {
     setError(null)
 
     try {
-      const response = await fetch(`${API_URL}/chat/stream`, {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, session_id: sessionIdRef.current }),
