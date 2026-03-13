@@ -32,3 +32,24 @@ async def health_check() -> dict[str, str]:
 
 
 app.include_router(chat_router)
+
+
+def _resolve_port(default: int = 8000) -> int:
+	raw_port = os.getenv("PORT")
+	if not raw_port:
+		return default
+
+	try:
+		return int(raw_port)
+	except ValueError:
+		return default
+
+
+if __name__ == "__main__":
+	import uvicorn
+
+	uvicorn.run(
+		"app.main:app",
+		host=os.getenv("HOST", "0.0.0.0"),
+		port=_resolve_port(),
+	)
