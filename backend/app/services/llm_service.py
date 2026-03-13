@@ -5,14 +5,31 @@ import os
 import re
 from pathlib import Path
 from threading import RLock
-from typing import Generator, List
+from typing import Any, Generator, List
 
 import requests
 from dotenv import load_dotenv
 
 from app.models.chat_model import ChatRequest, ChatResponse, Source
 from app.rag.loader import PortfolioDocument, load_portfolio_documents
-from app.rag.retriever import search, search_with_metadata
+
+
+def _search(query: str, top_k: int = 5, sections: list[str] | None = None) -> list[str]:
+    """Lazy-load retriever so app startup does not import heavy ML stack."""
+    from app.rag.retriever import search as retriever_search
+
+    return retriever_search(query, top_k=top_k, sections=sections)
+
+
+def _search_with_metadata(
+    query: str,
+    top_k: int = 5,
+    sections: list[str] | None = None,
+) -> list[Any]:
+    """Lazy-load metadata search for the same startup reason as _search."""
+    from app.rag.retriever import search_with_metadata as retriever_search_with_metadata
+
+    return retriever_search_with_metadata(query, top_k=top_k, sections=sections)
 
 # Load .env from backend folder or root folder
 backend_env = Path(__file__).resolve().parent.parent.parent / ".env"
@@ -939,7 +956,7 @@ def ask_llm(
         return None
 
     section_filter, top_k = _detect_sections(question)
-    context_chunks = search(question, top_k=top_k, sections=section_filter)
+    context_chunks = _search(question, top_k=top_k, sections=section_filter)
     owner_name = _infer_owner_name(context_chunks)
 
     context = "\n\n".join(context_chunks)
@@ -989,7 +1006,7 @@ def stream_llm(
         return
 
     section_filter, top_k = _detect_sections(question)
-    context_chunks = search(question, top_k=top_k, sections=section_filter)
+    context_chunks = _search(question, top_k=top_k, sections=section_filter)
     owner_name = _infer_owner_name(context_chunks)
     context = "\n\n".join(context_chunks)
 
@@ -1196,7 +1213,7 @@ class ChatService:
             return ChatResponse(answer=structured_answer, sources=sources)
 
         # Get sources for the response
-        retrieved = search_with_metadata(question, top_k=top_k, sections=section_filter)
+        retrieved = _search_with_metadata(question, top_k=top_k, sections=section_filter)
         sources = [
             Source(
                 id=item.document.id,
@@ -1257,7 +1274,7 @@ class ChatService:
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
-        retrieved = search_with_metadata(question, top_k=top_k, sections=section_filter)
+        retrieved = _search_with_metadata(question, top_k=top_k, sections=section_filter)
         sources = [
             {
                 "id": item.document.id,

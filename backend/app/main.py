@@ -5,8 +5,10 @@ from typing import List
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
-from app.routes.chat import router as chat_router
+from app.models.chat_model import ChatRequest
+from app.routes.chat import chat_service, router as chat_router
 
 
 def _get_allowed_origins() -> List[str]:
@@ -29,6 +31,16 @@ app.add_middleware(
 @app.get("/health")
 async def health_check() -> dict[str, str]:
 	return {"status": "ok"}
+
+
+@app.post("/query")
+async def query_stream_endpoint(payload: ChatRequest):
+	"""Alias endpoint used by deployed frontend; streams SSE tokens."""
+	return StreamingResponse(
+		chat_service.stream_answer(payload),
+		media_type="text/event-stream",
+		headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+	)
 
 
 app.include_router(chat_router)
