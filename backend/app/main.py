@@ -13,19 +13,38 @@ from app.routes.chat import chat_service, router as chat_router
 
 def _get_allowed_origins() -> List[str]:
 	raw = os.getenv("ALLOWED_ORIGINS", "*")
-	origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
-	return origins or ["*"]
+	origins = [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
+	if not origins:
+		return ["*"]
+	if "*" in origins:
+		return ["*"]
+
+	# Keep insertion order while removing duplicates.
+	return list(dict.fromkeys(origins))
 
 
 app = FastAPI(title="Hetavi Portfolio API", version="1.0.0", docs_url="/docs")
 
+allowed_origins = _get_allowed_origins()
+allow_credentials = "*" not in allowed_origins
+
 app.add_middleware(
 	CORSMiddleware,
-	allow_origins=_get_allowed_origins(),
-	allow_credentials=True,
+	allow_origins=allowed_origins,
+	allow_credentials=allow_credentials,
 	allow_methods=["*"],
 	allow_headers=["*"],
 )
+
+
+@app.get("/")
+async def root() -> dict[str, str]:
+	return {
+		"name": "Hetavi Portfolio API",
+		"status": "ok",
+		"health": "/health",
+		"docs": "/docs",
+	}
 
 
 @app.get("/health")

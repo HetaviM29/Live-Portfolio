@@ -27,9 +27,30 @@ const navItems = [
   { label: 'Contact', icon: '💻', query: 'How can I contact Hetavi?' },
 ]
 
-const RAW_API_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ??
-  'https://ai-portfolio-backend.onrender.com'
+const DEFAULT_REMOTE_API_URL = 'https://live-portfolio-310o.onrender.com'
+
+const isLocalAddress = (value: string) =>
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(value)
+
+const resolveApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL?.trim()
+  if (envUrl) {
+    const normalized = envUrl.replace(/\/$/, '')
+    // Protect production from accidental localhost env values.
+    if (typeof window !== 'undefined' && !isLocalAddress(window.location.origin) && isLocalAddress(normalized)) {
+      return DEFAULT_REMOTE_API_URL
+    }
+    return normalized
+  }
+
+  if (typeof window !== 'undefined' && isLocalAddress(window.location.origin)) {
+    return 'http://localhost:8000'
+  }
+
+  return DEFAULT_REMOTE_API_URL
+}
+
+const RAW_API_URL = resolveApiBaseUrl()
 
 const API_ENDPOINTS = (() => {
   if (RAW_API_URL.endsWith('/query') || RAW_API_URL.endsWith('/chat/stream')) {
