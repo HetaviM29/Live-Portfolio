@@ -11,12 +11,29 @@ from app.models.chat_model import ChatRequest
 from app.routes.chat import chat_service, router as chat_router
 
 
+DEFAULT_ALLOWED_ORIGINS = [
+	"https://live-portfolio-1.onrender.com",
+	"http://localhost:5173",
+	"http://localhost:3000",
+]
+
+
 def _get_allowed_origins() -> List[str]:
-	raw = os.getenv("ALLOWED_ORIGINS", "*")
-	origins = [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
-	if not origins:
+	raw = os.getenv("ALLOWED_ORIGINS", "")
+	parsed = [
+		origin.strip().strip("\"'").rstrip("/")
+		for origin in raw.split(",")
+		if origin.strip()
+	]
+	if "*" in parsed:
 		return ["*"]
-	if "*" in origins:
+
+	frontend_url = os.getenv("FRONTEND_URL", "").strip().strip("\"'").rstrip("/")
+	origins = DEFAULT_ALLOWED_ORIGINS + parsed
+	if frontend_url:
+		origins.append(frontend_url)
+
+	if not origins:
 		return ["*"]
 
 	# Keep insertion order while removing duplicates.
