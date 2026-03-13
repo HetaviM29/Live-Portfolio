@@ -27,7 +27,17 @@ const navItems = [
   { label: 'Contact', icon: '💻', query: 'How can I contact Hetavi?' },
 ]
 
-const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? 'https://ai-portfolio-backend.onrender.com/query'
+const RAW_API_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ??
+  'https://ai-portfolio-backend.onrender.com'
+
+const API_ENDPOINTS = (() => {
+  if (RAW_API_URL.endsWith('/query') || RAW_API_URL.endsWith('/chat/stream')) {
+    return [RAW_API_URL]
+  }
+
+  return [`${RAW_API_URL}/query`, `${RAW_API_URL}/chat/stream`]
+})()
 
 const createMessageId = () => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -96,14 +106,35 @@ function App() {
     setError(null)
 
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, session_id: sessionIdRef.current }),
-      })
+      const payload = JSON.stringify({ message: text, session_id: sessionIdRef.current })
+      let response: Response | null = null
+      let lastStatus: number | null = null
 
-      if (!response.ok) {
-        throw new Error('Failed to reach the portfolio API')
+      for (const endpoint of API_ENDPOINTS) {
+        try {
+          const candidate = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+          })
+
+          if (candidate.ok) {
+            response = candidate
+            break
+          }
+
+          lastStatus = candidate.status
+        } catch {
+          // Continue to the next endpoint candidate.
+        }
+      }
+
+      if (!response) {
+        throw new Error(
+          lastStatus
+            ? `Failed to reach the portfolio API (status ${lastStatus})`
+            : 'Failed to reach the portfolio API',
+        )
       }
 
       const assistantMessageId = createMessageId()
